@@ -1,0 +1,22 @@
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: peerbridge-db
+    environment:
+      POSTGRES_USER: peerbridge
+      POSTGRES_PASSWORD: ${DB_OWNER_PASSWORD:?copy .env.example to .env first}
+      POSTGRES_DB: peerbridge
+      APP_DB_PASSWORD: ${APP_DB_PASSWORD:?copy .env.example to .env first}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      # scripts run once, in filename order, on first start of an empty volume
+      - ./db/01_schema.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro
+      - ./db/02_functions_triggers.sql:/docker-entrypoint-initdb.d/02_functions_triggers.sql:ro
+      - ./db/03_indexes_views.sql:/docker-entrypoint-initdb.d/03_indexes_views.sql:ro
+      # 04: roles, grants, row-level security. The wrapper passes APP_DB_PASSWORD into the SQL file.
+      - ./db/04_roles_rls.sql:/opt/peerbridge/04_roles_rls.sql:ro
+      - ./db/04_roles.sh:/docker-entrypoint-initdb.d/04_roles.sh:ro
+volumes:
+  pgdata:
