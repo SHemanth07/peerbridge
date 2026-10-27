@@ -1,0 +1,61 @@
+
+> peerbridge@1.0.0 test:api
+> node --env-file=.env scripts/test_api.mjs
+
+=== Authentication & authorization ===
+PASS  A01  Login with wrong password -> 401
+PASS  A02  API call without a session cookie -> 401
+PASS  A03  Protected page without cookie redirects to /login   [status 307]
+PASS  A04  /api/auth/me returns the logged-in student (with e-mail from the signed session)
+PASS  A05  Student calling /api/admin/stats -> 403
+PASS  A06  Admin /api/admin/stats -> 200 with stats, leaderboard, unserved doubts
+PASS  A07  Admin cannot create a doubt (database role has no INSERT) -> 403
+PASS  A08  Student calling admin prerequisites API -> 403
+PASS  A09  Registration ignores a client-supplied role: new user is always 'student'
+PASS  A10  Registration with invalid e-mail -> 400 (database CHECK)   [Value rejected by database rule: chk_email_format]
+PASS  A11  Registration with an existing e-mail -> 409 (UNIQUE)
+
+=== Vector data: create / read / update / delete ===
+PASS  V01  CREATE: POST /api/doubts embeds the text, auto-tags a concept, inserts   [concept_id=3 autoTagged=true]
+PASS  V02  READ: peer matches via fn_find_peers (vector similarity + recency + reputation)   [Kabir 0.51, Meera 0.45, Rohan 0.42, Sneha 0.38, Ananya 0.34]
+PASS  V03  Another student cannot read matches of my doubt -> 403/404
+PASS  V04  READ: semantic search (pgvector) finds the doubt by meaning   [2 hits]
+PASS  V05  READ: keyword search (full-text, ts_rank) finds the doubt
+PASS  V06  READ: similar open doubts by embedding distance
+PASS  V07  UPDATE: PATCH re-embeds the doubt, so the peer ranking changes   [before: Kabir,Meera,Rohan,Sneha,Ananya | after: Rohan,Arjun,Isha,Diya,Meera]
+PASS  V08  UPDATE: another student cannot edit my doubt -> 404
+PASS  V09  UPDATE: too-short text rejected -> 400
+PASS  V10  DELETE: another student cannot delete my doubt -> 404
+PASS  V11  DELETE: owner deletes the doubt (row + embedding removed)
+PASS  V12  Deleted doubt is gone -> 404
+
+=== Mastery embeddings ===
+PASS  M01  CREATE/UPDATE: POST /api/mastery embeds the note and upserts
+PASS  M02  UPDATE: second POST refreshes score + note (embedding recomputed)
+PASS  M03  Score 40 rejected -> 400 (database CHECK)
+PASS  M04  Mastery in a course the student is not enrolled in -> 400 (trigger)
+PASS  M05  DELETE: remove mastery (row + embedding)
+
+=== Booking, sessions, transactions ===
+PASS  B01  Book a slot (transaction + sp_book_session) -> 201   [session 7]
+PASS  B02  After booking the doubt is 'matched' (trigger)
+PASS  B03  Booking the same slot / doubt again -> 409   [Someone just booked that slot - pick another]
+PASS  B04  A different student booking the SAME slot -> 409   [Someone just booked that slot - pick another]
+PASS  B05  Helper (not the asker) cannot complete the session -> 403
+PASS  B06  Outsider cannot cancel someone else's session -> 404
+PASS  B07  Rating 9 -> 400
+PASS  B08  Asker completes with rating 5 -> 200 (stored procedure)
+PASS  B09  Helper earned 10 + 2 x 5 = 20 reputation (trigger)   [18 -> 38]
+PASS  B10  Student's session list contains only sessions he takes part in (RLS)   [2 sessions]
+PASS  B11  Admin's session list contains everyone's sessions
+
+=== Recursive learning path & admin prerequisite graph ===
+PASS  R01  Learning path walks prerequisites recursively (Deadlocks -> Sync -> Threads)   [Threads versus Processes@2, Process Synchronization@1]
+PASS  R02  Admin adding a cyclic prerequisite -> 400 (recursive-CTE trigger)   [This prerequisite would create a cycle]
+PASS  R03  Admin adding a cross-course prerequisite -> 400   [A prerequisite must belong to the same course as the concept]
+PASS  R04  Admin adds a valid prerequisite -> 201
+
+=== Admin moderation & audit ===
+PASS  D01  Admin deletes a doubt; the audit trigger logs it   [latest audit: DELETE doubts]
+
+44/44 API tests passed

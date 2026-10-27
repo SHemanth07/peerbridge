@@ -1,0 +1,60 @@
+
+> peerbridge@1.0.0 test:db
+> node --env-file=.env scripts/test_db.mjs
+
+
+=== A. Constraints, keys and triggers (data integrity in the database) ===
+PASS  T01  Mastery score 40 rejected by CHECK (70-100)   [23514: new row for relation "mastery" violates check constraint "chk_mastery_]
+PASS  T02  Mastery for a course the student is not enrolled in rejected by trigger   [P0001: You must be enrolled in the concept's course before recording mastery]
+PASS  T03  Overlapping slot rejected by EXCLUDE constraint   [23P01: conflicting key value violates exclusion constraint "ex_no_overlap"]
+PASS  T04  Slot longer than 2 hours rejected by CHECK   [23514: new row for relation "availability_slots" violates check constraint "c]
+PASS  T05  Invalid e-mail format rejected by CHECK   [23514: new row for relation "users" violates check constraint "chk_email_form]
+PASS  T06  Session with helper = asker rejected (CHECK or trigger)   [23514]
+PASS  T07  Rating 9 rejected by CHECK (1-5)   [23514]
+PASS  T08  Prerequisite CYCLE (Threads -> Deadlocks closes a loop) rejected by recursive-CTE trigger   [P0001: This prerequisite would create a cycle]
+PASS  T09  Cross-course prerequisite rejected by trigger   [P0001: A prerequisite must belong to the same course as the concept]
+PASS  T10  Self-prerequisite rejected by CHECK   [23514: new row for relation "concept_prerequisites" violates check constraint]
+
+=== B. Role-based access control inside PostgreSQL (GRANT + row-level security) ===
+PASS  T11  pb_app without SET ROLE has no table privileges   [42501: permission denied for table users]
+PASS  T12  Student cannot read users.password_hash (column privilege)   [42501: permission denied for table users]
+PASS  T13  Student cannot read other users' e-mail (column privilege)   [42501: permission denied for table users]
+PASS  T14  Student cannot read audit_log   [42501: permission denied for table audit_log]
+PASS  T15  Student sees only the sessions he participates in (RLS)   [visible=1 expected=1 total=2]
+PASS  T16  Student cannot see other students' non-open doubts (RLS)   [visible=0]
+PASS  T17  Student cannot set doubts.status directly (column privilege)   [42501: permission denied for table doubts]
+PASS  T18  Student cannot flip availability_slots.is_booked (column privilege)   [42501: permission denied for table availability_slots]
+PASS  T19  Student cannot INSERT sessions directly (must use sp_book_session)   [42501: permission denied for table sessions]
+PASS  T20  Student cannot record mastery for another user (rejected by RLS / enrolment trigger)   [P0001: You must be enrolled in the concept's course before recording mastery]
+PASS  T20b  Student cannot UPDATE another student's mastery row (RLS hides it)   [rows=0]
+PASS  T21  Student cannot delete another student's doubts (RLS hides rows)   [rows=0]
+PASS  T22  Student cannot edit the prerequisite graph   [42501: permission denied for table concept_prerequisites]
+PASS  T23  Admin role has no INSERT on doubts   [42501: permission denied for table doubts]
+PASS  T24  Admin cannot read password hashes either   [42501: permission denied for table users]
+PASS  T25  Admin can read audit_log, platform view and ALL sessions   [audit=28 students=10 sessions=2]
+PASS  T26  pb_auth (login role) cannot read doubts   [42501: permission denied for table doubts]
+PASS  T27  Non-participant cannot modify someone else's session (RLS hides the row)   [rows=0]
+
+=== C. Business rules, procedures, concurrency ===
+PASS  T28  sp_book_session: trigger sets slot is_booked and doubt 'matched'   [slot=true doubt=matched]
+PASS  T29  Booking someone else's doubt rejected ('Not your doubt')   [42501: Not your doubt]
+PASS  T30  Two concurrent bookings of the SAME slot: second one waits for the lock, then gets conflict PB409   [blocked=true second=PB409]
+PASS  T31  Cancelling a session frees the slot and re-opens the doubt (trigger)   [is_booked=false doubt=open]
+PASS  T32  Helper cannot complete (rate) his own session (trigger)   [Only the student who asked can complete the session]
+PASS  T33  Completing with rating 5: doubt 'resolved', helper reputation +20 (trigger)   [doubt=resolved rep 20->40]
+
+=== D. Advanced queries: recursive CTE, correlated subquery, views, full-text, vector ===
+PASS  T34  fn_learning_path (RECURSIVE CTE): Deadlocks -> Process Synchronization -> Threads, deepest first   [Threads versus Processes@2 , Process Synchronization@1]
+PASS  T35  v_unserved_doubts (correlated NOT EXISTS) lists the doubt nobody can serve   [Query Optimization, Heaps and Priority Queues]
+PASS  T36  fn_find_peers (CTE + vector search): ranked, only peers with a free slot   [Rohan 0.42, Meera 0.41, Sneha 0.29, Kabir 0.28, Ananya 0.24]
+PASS  T37  Seeded ACID doubt: Meera (mastered ACID 3 days ago) is in the top 3
+PASS  T38  fn_find_peers refuses a caller who is not the asker   [P0001: Only the asker can view matches for doubt 1]
+PASS  T39  Vector similarity query uses the HNSW index
+PASS  T40  Full-text search (tsvector + GIN) finds matching doubts   [hits=1]
+PASS  T41  JOIN + GROUP BY + HAVING + ORDER BY   [9 concepts with >= 2 helpers]
+
+=== E. Audit trail and DDL ===
+PASS  T42  Admin deletes a doubt: trigger writes an audit_log DELETE entry   [0->1]
+PASS  T43  DDL demo (CREATE / ALTER / DROP) executes without errors
+
+44/44 database tests passed
