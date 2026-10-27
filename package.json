@@ -1,0 +1,32 @@
+{
+  "name": "peerbridge",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Semantic peer doubt-resolution platform (PostgreSQL + pgvector + Next.js)",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "db:up": "docker compose up -d",
+    "db:reset": "docker compose down -v && docker compose up -d",
+    "seed": "node --env-file=.env scripts/seed.mjs",
+    "test:db": "node --env-file=.env scripts/test_db.mjs",
+    "test:api": "node --env-file=.env scripts/test_api.mjs"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.5",
+    "@types/pg": "^8.23.1",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "@huggingface/transformers": "^4.3.1",
+    "bcryptjs": "^3.0.3",
+    "jose": "^6.2.13",
+    "next": "^15.5.28",
+    "pg": "^8.23.1",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
+  }
+}
