@@ -1,0 +1,62 @@
+:root {
+  --bg: #f6f7fb; --card: #ffffff; --ink: #1c2333; --muted: #667085; --line: #e3e6ef;
+  --brand: #4f46e5; --brand-ink: #ffffff; --ok: #12805c; --warn: #b54708; --bad: #b42318;
+  --radius: 12px;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--bg); color: var(--ink);
+  font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+a { color: var(--brand); text-decoration: none; }
+a:hover { text-decoration: underline; }
+h1 { font-size: 24px; margin: 0 0 4px; } h2 { font-size: 18px; margin: 0 0 10px; } h3 { font-size: 15px; margin: 0; }
+.muted { color: var(--muted); } .small { font-size: 13px; }
+
+.shell { display: grid; grid-template-columns: 220px 1fr; min-height: 100vh; }
+.side { background: #111827; color: #d6dae6; padding: 20px 14px; display: flex; flex-direction: column; gap: 4px; }
+.side .logo { font-weight: 700; font-size: 18px; color: #fff; padding: 0 10px 14px; }
+.side a { color: #c5cada; padding: 8px 10px; border-radius: 8px; }
+.side a:hover { background: #1f2937; text-decoration: none; }
+.side a.active { background: var(--brand); color: #fff; }
+.side .spacer { flex: 1; }
+.side .who { padding: 10px; font-size: 13px; color: #9aa3b8; }
+.main { padding: 28px 32px; max-width: 1000px; width: 100%; }
+
+.card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px; margin-bottom: 16px; }
+.grid { display: grid; gap: 14px; } .g2 { grid-template-columns: repeat(2, 1fr); } .g4 { grid-template-columns: repeat(4, 1fr); }
+@media (max-width: 800px) { .shell { grid-template-columns: 1fr; } .g2, .g4 { grid-template-columns: 1fr 1fr; } .main { padding: 18px; } }
+.stat { text-align: left; } .stat .n { font-size: 28px; font-weight: 700; } .stat .l { color: var(--muted); font-size: 13px; }
+
+label { display: block; font-size: 13px; font-weight: 600; margin: 10px 0 4px; }
+input, select, textarea { width: 100%; padding: 9px 11px; border: 1px solid var(--line); border-radius: 8px;
+  font: inherit; background: #fff; color: var(--ink); }
+textarea { min-height: 96px; resize: vertical; }
+input:focus, select:focus, textarea:focus { outline: 2px solid #c7d2fe; border-color: var(--brand); }
+button, .btn { background: var(--brand); color: var(--brand-ink); border: 0; padding: 9px 16px; border-radius: 8px;
+  font: inherit; font-weight: 600; cursor: pointer; display: inline-block; }
+button:hover { filter: brightness(1.08); text-decoration: none; }
+button.ghost { background: transparent; color: var(--brand); border: 1px solid var(--line); }
+button.danger { background: var(--bad); }
+button:disabled { opacity: .55; cursor: not-allowed; }
+.row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.between { justify-content: space-between; }
+
+.badge { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 12px; font-weight: 600; background: #eef0f7; color: #3b4258; }
+.badge.open { background: #e0f2fe; color: #075985; } .badge.matched, .badge.scheduled { background: #fef3c7; color: #92400e; }
+.badge.resolved, .badge.completed { background: #dcfce7; color: #166534; } .badge.cancelled { background: #f1f1f1; color: #666; }
+
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th, td { text-align: left; padding: 9px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+
+.alert { padding: 10px 12px; border-radius: 8px; margin: 10px 0; font-size: 14px; }
+.alert.err { background: #fee4e2; color: var(--bad); } .alert.ok { background: #d1fadf; color: var(--ok); }
+.bar { height: 8px; border-radius: 4px; background: #e8eaf3; overflow: hidden; }
+.bar > span { display: block; height: 100%; background: var(--brand); }
+.chip { display: inline-block; border: 1px solid var(--line); border-radius: 8px; padding: 4px 9px; margin: 3px 6px 3px 0;
+  background: #fff; font-size: 13px; cursor: pointer; color: var(--ink); }
+.chip:hover { border-color: var(--brand); }
+mark { background: #fde68a; padding: 0 2px; border-radius: 3px; }
+
+.auth { max-width: 400px; margin: 9vh auto; padding: 0 16px; }
+.hero { max-width: 720px; margin: 10vh auto; padding: 0 20px; }
+.hero h1 { font-size: 38px; line-height: 1.15; }
