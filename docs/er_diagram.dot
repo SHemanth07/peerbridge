@@ -1,0 +1,50 @@
+digraph ER {
+  graph [rankdir=LR, splines=true, nodesep=0.5, ranksep=1.1, fontname="Helvetica", bgcolor="white", pad=0.3];
+  node  [shape=plain, fontname="Helvetica", fontsize=10];
+  edge  [fontname="Helvetica", fontsize=9, color="#475569", arrowhead=none];
+
+  users [label=<<table border="0" cellborder="1" cellspacing="0" cellpadding="4">
+    <tr><td bgcolor="#4f46e5"><font color="white"><b>USERS</b></font></td></tr>
+    <tr><td align="left"><u>user_id</u> PK<br align="left"/>email UK<br align="left"/>password_hash<br align="left"/>full_name<br align="left"/>role (student|admin)<br align="left"/>semester<br align="left"/>reputation<br align="left"/>created_at<br align="left"/></td></tr></table>>];
+  courses [label=<<table border="0" cellborder="1" cellspacing="0" cellpadding="4">
+    <tr><td bgcolor="#4f46e5"><font color="white"><b>COURSES</b></font></td></tr>
+    <tr><td align="left"><u>course_id</u> PK<br align="left"/>code UK<br align="left"/>title<br align="left"/></td></tr></table>>];
+  concepts [label=<<table border="0" cellborder="1" cellspacing="0" cellpadding="4">
+    <tr><td bgcolor="#4f46e5"><font color="white"><b>CONCEPTS</b></font></td></tr>
+    <tr><td align="left"><u>concept_id</u> PK<br align="left"/>course_id FK<br align="left"/>name<br align="left"/>description<br align="left"/><font color="#b91c1c">embedding vector(384)</font><br align="left"/>UK(course_id, name)<br align="left"/></td></tr></table>>];
+  prereq [label=<<table border="0" cellborder="1" cellspacing="0" cellpadding="4">
+    <tr><td bgcolor="#0f766e"><font color="white"><b>CONCEPT_PREREQUISITES</b></font></td></tr>
+    <tr><td align="left"><u>concept_id</u> PK, FK<br align="left"/><u>prerequisite_id</u> PK, FK<br align="left"/>CHECK concept &lt;&gt; prerequisite<br align="left"/></td></tr></table>>];
+  enrol [label=<<table border="0" cellborder="1" cellspacing="0" cellpadding="4">
+    <tr><td bgcolor="#0f766e"><font color="white"><b>ENROLMENTS</b></font></td></tr>
+    <tr><td align="left"><u>user_id</u> PK, FK<br align="left"/><u>course_id</u> PK, FK<br align="left"/>academic_term<br align="left"/>enrolled_on<br align="left"/></td></tr></table>>];
+  mastery [label=<<table border="0" cellborder="1" cellspacing="0" cellpadding="4">
+    <tr><td bgcolor="#0f766e"><font color="white"><b>MASTERY</b></font></td></tr>
+    <tr><td align="left"><u>user_id</u> PK, FK<br align="left"/><u>concept_id</u> PK, FK<br align="left"/>score (70-100)<br align="left"/>note<br align="left"/>mastered_at<br align="left"/><font color="#b91c1c">embedding vector(384)</font><br align="left"/></td></tr></table>>];
+  doubts [label=<<table border="0" cellborder="1" cellspacing="0" cellpadding="4">
+    <tr><td bgcolor="#4f46e5"><font color="white"><b>DOUBTS</b></font></td></tr>
+    <tr><td align="left"><u>doubt_id</u> PK<br align="left"/>asker_id FK<br align="left"/>course_id FK<br align="left"/>concept_id FK (null)<br align="left"/>title, body<br align="left"/>status<br align="left"/><font color="#b91c1c">embedding vector(384)</font><br align="left"/>search_tsv (generated)<br align="left"/>created_at<br align="left"/></td></tr></table>>];
+  slots [label=<<table border="0" cellborder="1" cellspacing="0" cellpadding="4">
+    <tr><td bgcolor="#4f46e5"><font color="white"><b>AVAILABILITY_SLOTS</b></font></td></tr>
+    <tr><td align="left"><u>slot_id</u> PK<br align="left"/>helper_id FK<br align="left"/>start_time, end_time<br align="left"/>is_booked<br align="left"/>UK(helper_id, start_time)<br align="left"/>EXCLUDE overlap<br align="left"/></td></tr></table>>];
+  sessions [label=<<table border="0" cellborder="1" cellspacing="0" cellpadding="4">
+    <tr><td bgcolor="#4f46e5"><font color="white"><b>SESSIONS</b></font></td></tr>
+    <tr><td align="left"><u>session_id</u> PK<br align="left"/>doubt_id FK<br align="left"/>helper_id FK<br align="left"/>asker_id FK<br align="left"/>slot_id FK<br align="left"/>status, rating, feedback<br align="left"/>created_at, completed_at<br align="left"/></td></tr></table>>];
+  audit [label=<<table border="0" cellborder="1" cellspacing="0" cellpadding="4">
+    <tr><td bgcolor="#64748b"><font color="white"><b>AUDIT_LOG</b></font></td></tr>
+    <tr><td align="left"><u>log_id</u> PK<br align="left"/>table_name, action<br align="left"/>row_id, details (jsonb)<br align="left"/>changed_at<br align="left"/></td></tr></table>>];
+
+  users -> enrol   [taillabel="1", headlabel="N", label="enrols"];
+  courses -> enrol [taillabel="1", headlabel="N"];
+  courses -> concepts [taillabel="1", headlabel="N", label="contains"];
+  concepts -> prereq  [taillabel="1", headlabel="N", label="requires (self M:N)"];
+  users -> mastery    [taillabel="1", headlabel="N", label="has mastered"];
+  concepts -> mastery [taillabel="1", headlabel="N"];
+  users -> doubts     [taillabel="1", headlabel="N", label="asks"];
+  courses -> doubts   [taillabel="1", headlabel="N"];
+  concepts -> doubts  [taillabel="0..1", headlabel="N", label="tagged"];
+  users -> slots      [taillabel="1", headlabel="N", label="offers"];
+  doubts -> sessions  [taillabel="1", headlabel="N", label="resolved by"];
+  slots -> sessions   [taillabel="1", headlabel="N", label="booked in"];
+  users -> sessions   [taillabel="1", headlabel="N", label="helper / asker"];
+}
