@@ -1,50 +1,137 @@
-digraph ER {
-  graph [rankdir=LR, splines=true, nodesep=0.5, ranksep=1.1, fontname="Helvetica", bgcolor="white", pad=0.3];
-  node  [shape=plain, fontname="Helvetica", fontsize=10];
-  edge  [fontname="Helvetica", fontsize=9, color="#475569", arrowhead=none];
-
-  users [label=<<table border="0" cellborder="1" cellspacing="0" cellpadding="4">
-    <tr><td bgcolor="#4f46e5"><font color="white"><b>USERS</b></font></td></tr>
-    <tr><td align="left"><u>user_id</u> PK<br align="left"/>email UK<br align="left"/>password_hash<br align="left"/>full_name<br align="left"/>role (student|admin)<br align="left"/>semester<br align="left"/>reputation<br align="left"/>created_at<br align="left"/></td></tr></table>>];
-  courses [label=<<table border="0" cellborder="1" cellspacing="0" cellpadding="4">
-    <tr><td bgcolor="#4f46e5"><font color="white"><b>COURSES</b></font></td></tr>
-    <tr><td align="left"><u>course_id</u> PK<br align="left"/>code UK<br align="left"/>title<br align="left"/></td></tr></table>>];
-  concepts [label=<<table border="0" cellborder="1" cellspacing="0" cellpadding="4">
-    <tr><td bgcolor="#4f46e5"><font color="white"><b>CONCEPTS</b></font></td></tr>
-    <tr><td align="left"><u>concept_id</u> PK<br align="left"/>course_id FK<br align="left"/>name<br align="left"/>description<br align="left"/><font color="#b91c1c">embedding vector(384)</font><br align="left"/>UK(course_id, name)<br align="left"/></td></tr></table>>];
-  prereq [label=<<table border="0" cellborder="1" cellspacing="0" cellpadding="4">
-    <tr><td bgcolor="#0f766e"><font color="white"><b>CONCEPT_PREREQUISITES</b></font></td></tr>
-    <tr><td align="left"><u>concept_id</u> PK, FK<br align="left"/><u>prerequisite_id</u> PK, FK<br align="left"/>CHECK concept &lt;&gt; prerequisite<br align="left"/></td></tr></table>>];
-  enrol [label=<<table border="0" cellborder="1" cellspacing="0" cellpadding="4">
-    <tr><td bgcolor="#0f766e"><font color="white"><b>ENROLMENTS</b></font></td></tr>
-    <tr><td align="left"><u>user_id</u> PK, FK<br align="left"/><u>course_id</u> PK, FK<br align="left"/>academic_term<br align="left"/>enrolled_on<br align="left"/></td></tr></table>>];
-  mastery [label=<<table border="0" cellborder="1" cellspacing="0" cellpadding="4">
-    <tr><td bgcolor="#0f766e"><font color="white"><b>MASTERY</b></font></td></tr>
-    <tr><td align="left"><u>user_id</u> PK, FK<br align="left"/><u>concept_id</u> PK, FK<br align="left"/>score (70-100)<br align="left"/>note<br align="left"/>mastered_at<br align="left"/><font color="#b91c1c">embedding vector(384)</font><br align="left"/></td></tr></table>>];
-  doubts [label=<<table border="0" cellborder="1" cellspacing="0" cellpadding="4">
-    <tr><td bgcolor="#4f46e5"><font color="white"><b>DOUBTS</b></font></td></tr>
-    <tr><td align="left"><u>doubt_id</u> PK<br align="left"/>asker_id FK<br align="left"/>course_id FK<br align="left"/>concept_id FK (null)<br align="left"/>title, body<br align="left"/>status<br align="left"/><font color="#b91c1c">embedding vector(384)</font><br align="left"/>search_tsv (generated)<br align="left"/>created_at<br align="left"/></td></tr></table>>];
-  slots [label=<<table border="0" cellborder="1" cellspacing="0" cellpadding="4">
-    <tr><td bgcolor="#4f46e5"><font color="white"><b>AVAILABILITY_SLOTS</b></font></td></tr>
-    <tr><td align="left"><u>slot_id</u> PK<br align="left"/>helper_id FK<br align="left"/>start_time, end_time<br align="left"/>is_booked<br align="left"/>UK(helper_id, start_time)<br align="left"/>EXCLUDE overlap<br align="left"/></td></tr></table>>];
-  sessions [label=<<table border="0" cellborder="1" cellspacing="0" cellpadding="4">
-    <tr><td bgcolor="#4f46e5"><font color="white"><b>SESSIONS</b></font></td></tr>
-    <tr><td align="left"><u>session_id</u> PK<br align="left"/>doubt_id FK<br align="left"/>helper_id FK<br align="left"/>asker_id FK<br align="left"/>slot_id FK<br align="left"/>status, rating, feedback<br align="left"/>created_at, completed_at<br align="left"/></td></tr></table>>];
-  audit [label=<<table border="0" cellborder="1" cellspacing="0" cellpadding="4">
-    <tr><td bgcolor="#64748b"><font color="white"><b>AUDIT_LOG</b></font></td></tr>
-    <tr><td align="left"><u>log_id</u> PK<br align="left"/>table_name, action<br align="left"/>row_id, details (jsonb)<br align="left"/>changed_at<br align="left"/></td></tr></table>>];
-
-  users -> enrol   [taillabel="1", headlabel="N", label="enrols"];
-  courses -> enrol [taillabel="1", headlabel="N"];
-  courses -> concepts [taillabel="1", headlabel="N", label="contains"];
-  concepts -> prereq  [taillabel="1", headlabel="N", label="requires (self M:N)"];
-  users -> mastery    [taillabel="1", headlabel="N", label="has mastered"];
-  concepts -> mastery [taillabel="1", headlabel="N"];
-  users -> doubts     [taillabel="1", headlabel="N", label="asks"];
-  courses -> doubts   [taillabel="1", headlabel="N"];
-  concepts -> doubts  [taillabel="0..1", headlabel="N", label="tagged"];
-  users -> slots      [taillabel="1", headlabel="N", label="offers"];
-  doubts -> sessions  [taillabel="1", headlabel="N", label="resolved by"];
-  slots -> sessions   [taillabel="1", headlabel="N", label="booked in"];
-  users -> sessions   [taillabel="1", headlabel="N", label="helper / asker"];
+graph ER {
+  layout=neato; overlap=prism; overlap_scaling=4; sep="+16"; splines=true; start=1;
+  graph [bgcolor=white, pad=0.4, fontname="DejaVu Sans", labelloc=t, fontsize=26, label="PeerBridge - ER diagram (Chen notation)\n"];
+  node  [fontname="DejaVu Sans", fontsize=12];
+  edge  [fontname="DejaVu Sans", fontsize=13, color="#000000", penwidth=1.2];
+  USER [shape=box, style=filled, fillcolor="#d9d9d9", fontsize=15, fontname="DejaVu Sans Bold", penwidth=1.8, margin="0.25,0.14"];
+  USER__user_id [shape=ellipse, style=solid, label=<<u>user_id</u>>, width=0.5, height=0.35];
+  USER -- USER__user_id [len=1.15];
+  USER__email [shape=ellipse, style=solid, label="email", width=0.5, height=0.35];
+  USER -- USER__email [len=1.15];
+  USER__password_hash [shape=ellipse, style=solid, label="password_hash", width=0.5, height=0.35];
+  USER -- USER__password_hash [len=1.15];
+  USER__full_name [shape=ellipse, style=solid, label="full_name", width=0.5, height=0.35];
+  USER -- USER__full_name [len=1.15];
+  USER__role [shape=ellipse, style=solid, label="role", width=0.5, height=0.35];
+  USER -- USER__role [len=1.15];
+  USER__semester [shape=ellipse, style=solid, label="semester", width=0.5, height=0.35];
+  USER -- USER__semester [len=1.15];
+  USER__reputation [shape=ellipse, style=dashed, label="reputation", width=0.5, height=0.35];
+  USER -- USER__reputation [len=1.15];
+  USER__created_at [shape=ellipse, style=solid, label="created_at", width=0.5, height=0.35];
+  USER -- USER__created_at [len=1.15];
+  COURSE [shape=box, style=filled, fillcolor="#d9d9d9", fontsize=15, fontname="DejaVu Sans Bold", penwidth=1.8, margin="0.25,0.14"];
+  COURSE__course_id [shape=ellipse, style=solid, label=<<u>course_id</u>>, width=0.5, height=0.35];
+  COURSE -- COURSE__course_id [len=1.15];
+  COURSE__code [shape=ellipse, style=solid, label="code", width=0.5, height=0.35];
+  COURSE -- COURSE__code [len=1.15];
+  COURSE__title [shape=ellipse, style=solid, label="title", width=0.5, height=0.35];
+  COURSE -- COURSE__title [len=1.15];
+  CONCEPT [shape=box, style=filled, fillcolor="#d9d9d9", fontsize=15, fontname="DejaVu Sans Bold", penwidth=1.8, margin="0.25,0.14"];
+  CONCEPT__concept_id [shape=ellipse, style=solid, label=<<u>concept_id</u>>, width=0.5, height=0.35];
+  CONCEPT -- CONCEPT__concept_id [len=1.15];
+  CONCEPT__name [shape=ellipse, style=solid, label="name", width=0.5, height=0.35];
+  CONCEPT -- CONCEPT__name [len=1.15];
+  CONCEPT__description [shape=ellipse, style=solid, label="description", width=0.5, height=0.35];
+  CONCEPT -- CONCEPT__description [len=1.15];
+  CONCEPT__embedding [shape=ellipse, style=solid, label="embedding", width=0.5, height=0.35];
+  CONCEPT -- CONCEPT__embedding [len=1.15];
+  DOUBT [shape=box, style=filled, fillcolor="#d9d9d9", fontsize=15, fontname="DejaVu Sans Bold", penwidth=1.8, margin="0.25,0.14"];
+  DOUBT__doubt_id [shape=ellipse, style=solid, label=<<u>doubt_id</u>>, width=0.5, height=0.35];
+  DOUBT -- DOUBT__doubt_id [len=1.15];
+  DOUBT__title [shape=ellipse, style=solid, label="title", width=0.5, height=0.35];
+  DOUBT -- DOUBT__title [len=1.15];
+  DOUBT__body [shape=ellipse, style=solid, label="body", width=0.5, height=0.35];
+  DOUBT -- DOUBT__body [len=1.15];
+  DOUBT__status [shape=ellipse, style=solid, label="status", width=0.5, height=0.35];
+  DOUBT -- DOUBT__status [len=1.15];
+  DOUBT__embedding [shape=ellipse, style=solid, label="embedding", width=0.5, height=0.35];
+  DOUBT -- DOUBT__embedding [len=1.15];
+  DOUBT__search_tsv [shape=ellipse, style=dashed, label="search_tsv", width=0.5, height=0.35];
+  DOUBT -- DOUBT__search_tsv [len=1.15];
+  DOUBT__created_at [shape=ellipse, style=solid, label="created_at", width=0.5, height=0.35];
+  DOUBT -- DOUBT__created_at [len=1.15];
+  AVAILABILITY_SLOT [shape=box, style=filled, fillcolor="#d9d9d9", fontsize=15, fontname="DejaVu Sans Bold", penwidth=1.8, margin="0.25,0.14"];
+  AVAILABILITY_SLOT__slot_id [shape=ellipse, style=solid, label=<<u>slot_id</u>>, width=0.5, height=0.35];
+  AVAILABILITY_SLOT -- AVAILABILITY_SLOT__slot_id [len=1.15];
+  AVAILABILITY_SLOT__start_time [shape=ellipse, style=solid, label="start_time", width=0.5, height=0.35];
+  AVAILABILITY_SLOT -- AVAILABILITY_SLOT__start_time [len=1.15];
+  AVAILABILITY_SLOT__end_time [shape=ellipse, style=solid, label="end_time", width=0.5, height=0.35];
+  AVAILABILITY_SLOT -- AVAILABILITY_SLOT__end_time [len=1.15];
+  AVAILABILITY_SLOT__is_booked [shape=ellipse, style=solid, label="is_booked", width=0.5, height=0.35];
+  AVAILABILITY_SLOT -- AVAILABILITY_SLOT__is_booked [len=1.15];
+  SESSION [shape=box, style=filled, fillcolor="#d9d9d9", fontsize=15, fontname="DejaVu Sans Bold", penwidth=1.8, margin="0.25,0.14"];
+  SESSION__session_id [shape=ellipse, style=solid, label=<<u>session_id</u>>, width=0.5, height=0.35];
+  SESSION -- SESSION__session_id [len=1.15];
+  SESSION__status [shape=ellipse, style=solid, label="status", width=0.5, height=0.35];
+  SESSION -- SESSION__status [len=1.15];
+  SESSION__rating [shape=ellipse, style=solid, label="rating", width=0.5, height=0.35];
+  SESSION -- SESSION__rating [len=1.15];
+  SESSION__feedback [shape=ellipse, style=solid, label="feedback", width=0.5, height=0.35];
+  SESSION -- SESSION__feedback [len=1.15];
+  SESSION__created_at [shape=ellipse, style=solid, label="created_at", width=0.5, height=0.35];
+  SESSION -- SESSION__created_at [len=1.15];
+  SESSION__completed_at [shape=ellipse, style=solid, label="completed_at", width=0.5, height=0.35];
+  SESSION -- SESSION__completed_at [len=1.15];
+  AUDIT_LOG [shape=box, style=filled, fillcolor="#d9d9d9", fontsize=15, fontname="DejaVu Sans Bold", penwidth=1.8, margin="0.25,0.14"];
+  AUDIT_LOG__log_id [shape=ellipse, style=solid, label=<<u>log_id</u>>, width=0.5, height=0.35];
+  AUDIT_LOG -- AUDIT_LOG__log_id [len=1.15];
+  AUDIT_LOG__table_name [shape=ellipse, style=solid, label="table_name", width=0.5, height=0.35];
+  AUDIT_LOG -- AUDIT_LOG__table_name [len=1.15];
+  AUDIT_LOG__action [shape=ellipse, style=solid, label="action", width=0.5, height=0.35];
+  AUDIT_LOG -- AUDIT_LOG__action [len=1.15];
+  AUDIT_LOG__row_id [shape=ellipse, style=solid, label="row_id", width=0.5, height=0.35];
+  AUDIT_LOG -- AUDIT_LOG__row_id [len=1.15];
+  AUDIT_LOG__details [shape=ellipse, style=solid, label="details", width=0.5, height=0.35];
+  AUDIT_LOG -- AUDIT_LOG__details [len=1.15];
+  AUDIT_LOG__changed_at [shape=ellipse, style=solid, label="changed_at", width=0.5, height=0.35];
+  AUDIT_LOG -- AUDIT_LOG__changed_at [len=1.15];
+  ENROLS [shape=diamond, style=filled, fillcolor="#d9eef0", fontsize=11, fontname="DejaVu Sans Bold", penwidth=1.6];
+  ENROLS__academic_term [shape=ellipse, style=solid, label="academic_term", width=0.5, height=0.35];
+  ENROLS -- ENROLS__academic_term [len=1.1];
+  ENROLS__enrolled_on [shape=ellipse, style=solid, label="enrolled_on", width=0.5, height=0.35];
+  ENROLS -- ENROLS__enrolled_on [len=1.1];
+  ENROLS -- USER [len=2.0, color="#000000", headlabel="M", labeldistance=2.2, labelangle=-25, labelfontsize=15, labelfontname="DejaVu Sans Bold"];
+  ENROLS -- COURSE [len=2.0, color="#000000", headlabel="N", labeldistance=2.2, labelangle=25, labelfontsize=15, labelfontname="DejaVu Sans Bold"];
+  CONTAINS [shape=diamond, style=filled, fillcolor="#d9eef0", fontsize=11, fontname="DejaVu Sans Bold", penwidth=1.6];
+  CONTAINS -- COURSE [len=2.0, color="#000000", headlabel="1", labeldistance=2.2, labelangle=-25, labelfontsize=15, labelfontname="DejaVu Sans Bold"];
+  CONTAINS -- CONCEPT [len=2.0, color="#000000:#ffffff:#000000", headlabel="N", labeldistance=2.2, labelangle=-70, labelfontsize=15, labelfontname="DejaVu Sans Bold"];
+  MASTERS [shape=diamond, style=filled, fillcolor="#d9eef0", fontsize=11, fontname="DejaVu Sans Bold", penwidth=1.6];
+  MASTERS__score [shape=ellipse, style=solid, label="score", width=0.5, height=0.35];
+  MASTERS -- MASTERS__score [len=1.1];
+  MASTERS__note [shape=ellipse, style=solid, label="note", width=0.5, height=0.35];
+  MASTERS -- MASTERS__note [len=1.1];
+  MASTERS__mastered_at [shape=ellipse, style=solid, label="mastered_at", width=0.5, height=0.35];
+  MASTERS -- MASTERS__mastered_at [len=1.1];
+  MASTERS__embedding [shape=ellipse, style=solid, label="embedding", width=0.5, height=0.35];
+  MASTERS -- MASTERS__embedding [len=1.1];
+  MASTERS -- USER [len=2.0, color="#000000", headlabel="M", labeldistance=2.2, labelangle=-25, labelfontsize=15, labelfontname="DejaVu Sans Bold"];
+  MASTERS -- CONCEPT [len=2.0, color="#000000", headlabel="N", labeldistance=2.2, labelangle=25, labelfontsize=15, labelfontname="DejaVu Sans Bold"];
+  PREREQUISITE_OF [shape=diamond, style=filled, fillcolor="#d9eef0", fontsize=11, fontname="DejaVu Sans Bold", penwidth=1.6];
+  PREREQUISITE_OF -- CONCEPT [len=3.0, color="#000000", headlabel="M", labeldistance=2.2, labelangle=55, labelfontsize=15, labelfontname="DejaVu Sans Bold", tailport=w, headport=sw, xlabel=<<i>dependent</i>>];
+  PREREQUISITE_OF -- CONCEPT [len=3.0, color="#000000", headlabel="N", labeldistance=2.2, labelangle=-55, labelfontsize=15, labelfontname="DejaVu Sans Bold", tailport=e, headport=se, xlabel=<<i>prerequisite</i>>];
+  ASKS [shape=diamond, style=filled, fillcolor="#d9eef0", fontsize=11, fontname="DejaVu Sans Bold", penwidth=1.6];
+  ASKS -- USER [len=2.0, color="#000000", headlabel="1", labeldistance=2.2, labelangle=-25, labelfontsize=15, labelfontname="DejaVu Sans Bold"];
+  ASKS -- DOUBT [len=2.0, color="#000000:#ffffff:#000000", headlabel="N", labeldistance=2.2, labelangle=25, labelfontsize=15, labelfontname="DejaVu Sans Bold"];
+  ABOUT [shape=diamond, style=filled, fillcolor="#d9eef0", fontsize=11, fontname="DejaVu Sans Bold", penwidth=1.6];
+  ABOUT -- COURSE [len=2.0, color="#000000", headlabel="1", labeldistance=2.2, labelangle=-25, labelfontsize=15, labelfontname="DejaVu Sans Bold"];
+  ABOUT -- DOUBT [len=2.0, color="#000000:#ffffff:#000000", headlabel="N", labeldistance=2.2, labelangle=70, labelfontsize=15, labelfontname="DejaVu Sans Bold"];
+  TAGGED_WITH [shape=diamond, style=filled, fillcolor="#d9eef0", fontsize=11, fontname="DejaVu Sans Bold", penwidth=1.6];
+  TAGGED_WITH -- CONCEPT [len=2.0, color="#000000", headlabel="1", labeldistance=2.2, labelangle=-25, labelfontsize=15, labelfontname="DejaVu Sans Bold"];
+  TAGGED_WITH -- DOUBT [len=2.0, color="#000000", headlabel="N", labeldistance=2.2, labelangle=-70, labelfontsize=15, labelfontname="DejaVu Sans Bold"];
+  OFFERS [shape=diamond, style=filled, fillcolor="#d9eef0", fontsize=11, fontname="DejaVu Sans Bold", penwidth=1.6];
+  OFFERS -- USER [len=2.0, color="#000000", headlabel="1", labeldistance=2.2, labelangle=-25, labelfontsize=15, labelfontname="DejaVu Sans Bold"];
+  OFFERS -- AVAILABILITY_SLOT [len=2.0, color="#000000:#ffffff:#000000", headlabel="N", labeldistance=2.2, labelangle=25, labelfontsize=15, labelfontname="DejaVu Sans Bold"];
+  RESOLVED_BY [shape=diamond, style=filled, fillcolor="#d9eef0", fontsize=11, fontname="DejaVu Sans Bold", penwidth=1.6];
+  RESOLVED_BY -- DOUBT [len=2.0, color="#000000", headlabel="1", labeldistance=2.2, labelangle=-25, labelfontsize=15, labelfontname="DejaVu Sans Bold"];
+  RESOLVED_BY -- SESSION [len=2.0, color="#000000:#ffffff:#000000", headlabel="N", labeldistance=2.2, labelangle=25, labelfontsize=15, labelfontname="DejaVu Sans Bold"];
+  BOOKED_IN [shape=diamond, style=filled, fillcolor="#d9eef0", fontsize=11, fontname="DejaVu Sans Bold", penwidth=1.6];
+  BOOKED_IN -- AVAILABILITY_SLOT [len=2.0, color="#000000", headlabel="1", labeldistance=2.2, labelangle=-25, labelfontsize=15, labelfontname="DejaVu Sans Bold"];
+  BOOKED_IN -- SESSION [len=2.0, color="#000000:#ffffff:#000000", headlabel="N", labeldistance=2.2, labelangle=25, labelfontsize=15, labelfontname="DejaVu Sans Bold"];
+  HELPS [shape=diamond, style=filled, fillcolor="#d9eef0", fontsize=11, fontname="DejaVu Sans Bold", penwidth=1.6];
+  HELPS -- USER [len=2.0, color="#000000", headlabel="1", labeldistance=2.2, labelangle=-25, labelfontsize=15, labelfontname="DejaVu Sans Bold", xlabel=<<i>helper</i>>];
+  HELPS -- SESSION [len=2.0, color="#000000:#ffffff:#000000", headlabel="N", labeldistance=2.2, labelangle=25, labelfontsize=15, labelfontname="DejaVu Sans Bold"];
+  RECEIVES_HELP [shape=diamond, style=filled, fillcolor="#d9eef0", fontsize=11, fontname="DejaVu Sans Bold", penwidth=1.6];
+  RECEIVES_HELP -- USER [len=2.0, color="#000000", headlabel="1", labeldistance=2.2, labelangle=-25, labelfontsize=15, labelfontname="DejaVu Sans Bold", xlabel=<<i>asker</i>>];
+  RECEIVES_HELP -- SESSION [len=2.0, color="#000000:#ffffff:#000000", headlabel="N", labeldistance=2.2, labelangle=25, labelfontsize=15, labelfontname="DejaVu Sans Bold"];
 }

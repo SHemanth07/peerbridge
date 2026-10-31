@@ -93,7 +93,7 @@ lib/                         db pool, auth (JWT), embeddings, error mapping
 app/api/                     REST endpoints (see docs/PROJECT_REPORT.md)
 app/(app)/                   authenticated UI pages
 docs/PROJECT_REPORT.md       report: ER diagram, schema, data dictionary, queries, tests, rubric map
-docs/er_diagram.png|.svg|.dot  ER diagram
+docs/er_diagram.png|.svg|.dot  ER diagram (Chen notation; rebuilt by scripts/make_er_diagram.py)
 docs/CONTRIBUTIONS.md        who did what + commit plan
 docs/VIVA_PREP.md            questions and answers for the viva
 docs/test_results/           saved test logs
